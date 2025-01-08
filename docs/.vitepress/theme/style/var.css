@@ -37,6 +37,12 @@
     z-index: 9999 !important; /* 给的值是21，但是实测盖不住，直接999 */
 }
 
+/* 头像边框颜色和头像变圆 */
+.image-src {
+    border: 4px solid #4ea4efff;
+    border-radius: 320px;
+}
+
 /* 也可自行单独修改brand按钮 */
 /* :root {
   --vp-button-brand-border: #F6CEEC;

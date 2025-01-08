@@ -15,7 +15,7 @@ hero:
       link: /markdown模板
     - theme: alt
       text: API Examples
-      link: 测试1/API例子
+      link: API例子
 
 features:
   - title: Feature A

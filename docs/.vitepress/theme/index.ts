@@ -2,6 +2,7 @@ import DefaultTheme from "vitepress/theme";
 import "./style/index.css"; //引入自定义的样式
 
 import mediumZoom from "medium-zoom";
+// @ts-ignore
 import { onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vitepress';
 
