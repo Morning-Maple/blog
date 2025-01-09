@@ -11,10 +11,10 @@ hero:
     alt: 头像
   actions:
     - theme: brand
-      text: Markdown Examples
+      text: 让我康康你写了什么
       link: /markdown模板
     - theme: alt
-      text: API Examples
+      text: 偷窥你的模板
       link: API例子
 
 features:
