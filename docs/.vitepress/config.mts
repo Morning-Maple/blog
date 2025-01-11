@@ -10,7 +10,7 @@ const vitepressSidebarOptions = {
   collapseDepth: 2, //折叠组2级菜单
   removePrefixAfterOrdering: true, //删除前缀，必须与prefixSeparator一起使用
   prefixSeparator: "_", //删除前缀的符号
-  excludePattern: ['assets/'], // 排除src目录
+  excludePattern: ['assets/'], // 排除目录
   scanStartPath: 'src', // 指定文档存放的目录，也就是从哪里开始出现侧边栏
 };
 
@@ -37,7 +37,7 @@ const searchOptions: DefaultTheme.LocalSearchOptions = {
   detailedView: "auto",
   translations: {
     button: {
-      buttonText: '搜索',
+      buttonText: '搜索一下，你就知道',
       // buttonAriaLabel: '搜索',
     },
     modal: {
@@ -72,6 +72,12 @@ export default defineConfig({
   title: "Morning_Maple",
   titleTemplate: '枫のBlog',
   description: "Morning_Maple的个人博客",
+  head: [
+    ['link', { rel: 'icon', href: './favicon.ico' }]
+  ],
+  vite: {
+    publicDir: '../public'
+  },
   srcDir: 'src',
   base: '/',
   cleanUrls: true,  // 支持index.md用index访问，如果平台不支持，请设为false

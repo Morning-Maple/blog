@@ -43,6 +43,39 @@
     border-radius: 320px;
 }
 
+/* Badge样式 */
+:root {
+    --vp-custom-block-tip-bg: var(--vp-c-green-soft);
+}
+
+/* 提示框 */
+.custom-block.tip {
+    border-color: var(--vp-c-green-2);
+}
+
+/* Info框 */
+.custom-block.info {
+    border-color: var(--vp-c-gray-2);
+}
+
+/* 警告框 */
+.custom-block.warning {
+    /* border-color: #d97706; */
+    border-color: var(--vp-c-yellow-2);
+}
+
+/* 危险框 */
+.custom-block.danger {
+    /* border-color: #f43f5e; */
+    border-color: var(--vp-c-red-2);
+}
+
+/* Detail框 */
+.custom-block.details {
+    /* border-color: #f43f5e; */
+    border-color: var(--vp-c-indigo-2);
+}
+
 /* 也可自行单独修改brand按钮 */
 /* :root {
   --vp-button-brand-border: #F6CEEC;
