@@ -1,29 +1,36 @@
 import {DefaultTheme, defineConfig} from 'vitepress'
-import { generateSidebar } from "vitepress-sidebar";
+import {generateSidebar} from "vitepress-sidebar";
+import type {VitePressSidebarOptions} from "vitepress-sidebar/dist/types";
 
 /**
  * vitepressSidebar的配置
  */
-const vitepressSidebarOptions = {
+const vitepressSidebarOptions: VitePressSidebarOptions = {
   documentRootPath: "/docs",
-  collapsed: false, //折叠组关闭
-  collapseDepth: 2, //折叠组2级菜单
-  removePrefixAfterOrdering: true, //删除前缀，必须与prefixSeparator一起使用
-  prefixSeparator: "_", //删除前缀的符号
-  excludePattern: ['assets/'], // 排除目录
+  collapsed: true, //折叠组关闭
+  collapseDepth: 1, //折叠组深度
+  // removePrefixAfterOrdering: true, //删除前缀，必须与prefixSeparator一起使用
+  // prefixSeparator: "_", //删除前缀的符号
+  excludePattern: ['assets/', 'writing/'], // 排除目录
   scanStartPath: 'src', // 指定文档存放的目录，也就是从哪里开始出现侧边栏
+  excludeFilesByFrontmatterFieldName: 'hide', // Frontmatter内如果包含hide: true，则不会被显示，具体内容看：https://vitepress.dev/zh/reference/frontmatter-config#frontmatter-config
+  // 排序API参考：https://vitepress-sidebar.cdget.com/zhHans/guide/options#manualsortfilenamebypriority
+  sortFolderTo: "top",  // 所有文件夹排序在最上方，而后才是文件
+  sortMenusByFrontmatterOrder: true,  // 每个文件夹内的文件按Frontmatter字段order的值进行升序排序，例如order: 0
+  sortMenusOrderByDescending: false,  // 定义上一条的排序方式，false为升序，否则为降序
+  frontmatterOrderDefaultValue: 0, // 如果文章内无Frontmatter字段order的值，则赋予默认的值
 };
 
 /**
  * 日期更新时间戳配置
  */
 const lastUpdatedOptions: DefaultTheme.LastUpdatedOptions = {
-  text: 'Lazy man Updated at',
+  text: 'Updated at',
   formatOptions: {
-    forceLocale: true,
+    // forceLocale: true,
     timeZone: 'Asia/Shanghai',
-    timeZoneName: 'longOffset',
-    year: "2-digit",
+    // timeZoneName: 'short',
+    year: "numeric",
     month: "2-digit",
     day: "2-digit",
     minute: "2-digit",
@@ -73,7 +80,7 @@ export default defineConfig({
   titleTemplate: '枫のBlog',
   description: "Morning_Maple的个人博客",
   head: [
-    ['link', { rel: 'icon', href: './favicon.ico' }]
+    ['link', {rel: 'icon', href: './favicon.ico'}]
   ],
   vite: {
     publicDir: '../public'
@@ -133,14 +140,15 @@ export default defineConfig({
       label: '大纲',  // 修改右上角的on this page
     },
     nav: [
-      { text: '首页', link: '/' },
-      { text: '主站点', link: 'https://morningmaple.top/' },
+      {text: '首页', link: '/'},
+      {text: '主站点', link: 'https://morningmaple.top/'},
     ],
 
+    // @ts-ignore
     sidebar: generateSidebar(vitepressSidebarOptions),
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/Morning-Maple/blog' }
+      {icon: 'github', link: 'https://github.com/Morning-Maple/blog'}
     ]
   }
 })

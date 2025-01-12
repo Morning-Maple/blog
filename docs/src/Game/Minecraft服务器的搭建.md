@@ -1,3 +1,8 @@
+---
+hide: false
+order: 0
+---
+
 # Minecraft服务器的搭建
 
 ## 前言
