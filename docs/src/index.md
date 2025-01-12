@@ -7,7 +7,7 @@ hero:
   text: "使用VitePress速成的Blog"
   tagline: 吸取教训，然后进步
   image:
-    src: assets/avatar.jpg
+    src: /avatar.jpg
     alt: 头像
   actions:
     - theme: brand
