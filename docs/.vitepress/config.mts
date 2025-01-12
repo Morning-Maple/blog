@@ -19,6 +19,8 @@ const vitepressSidebarOptions: VitePressSidebarOptions = {
   sortMenusByFrontmatterOrder: true,  // 每个文件夹内的文件按Frontmatter字段order的值进行升序排序，例如order: 0
   sortMenusOrderByDescending: false,  // 定义上一条的排序方式，false为升序，否则为降序
   frontmatterOrderDefaultValue: 0, // 如果文章内无Frontmatter字段order的值，则赋予默认的值
+  useTitleFromFileHeading: true,  // 使用文章内的h1标题内容作为标题（如果没有则会显示Unknown），注意，排序仍旧按文件夹树进行，如果想按更改后的名称排序，启用下一行
+  // sortMenusByName: true,  // 使用更名后的名字进行排序（如有需要），搭配useTitleFromFileHeading: true使用
 };
 
 /**
