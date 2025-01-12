@@ -25,18 +25,21 @@ const vitepressSidebarOptions: VitePressSidebarOptions = {
  * 日期更新时间戳配置
  */
 const lastUpdatedOptions: DefaultTheme.LastUpdatedOptions = {
-  text: 'Updated at',
+  text: '最后更新',
   formatOptions: {
     // forceLocale: true,
     timeZone: 'Asia/Shanghai',
-    // timeZoneName: 'short',
+    // localeMatcher: 'lookup',
+    timeZoneName: 'short',
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    weekday: "long",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    weekday: "short",
     hour12: false,
+    // era: "long",
   }
 }
 
