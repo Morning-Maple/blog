@@ -80,7 +80,7 @@ Forge（注意，只是提供下载路径，教程用的是Fabric）：[安装Fo
 
 ### MCDR文档：
 
-[快速上手 — MCDReforged 2.11.0 文档](https://mcdreforged.readthedocs.io/zh-cn/latest/quick_start.html)
+[MCDReforged](https://docs.mcdreforged.com/zh-cn/latest/)
 
 ### ①安装Python：
 
