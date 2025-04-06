@@ -146,7 +146,7 @@ export default defineConfig({
     },
     nav: [
       {text: '首页', link: '/'},
-      {text: '主站点', link: 'https://morningmaple.top/'},
+      // {text: '主站点', link: 'https://morningmaple.top/'},
     ],
 
     // @ts-ignore
