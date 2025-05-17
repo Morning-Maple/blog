@@ -3,7 +3,7 @@ hide: false
 order: 0
 ---
 
-# element plus官网的明暗主题切换动画
+# Element Plus官网的明暗主题切换动画
 
 ## 前言
 
