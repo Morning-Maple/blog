@@ -146,6 +146,12 @@ export default defineConfig({
     },
     nav: [
       {text: '首页', link: '/'},
+      {
+        text: '友链',
+        items: [
+          { text: '尚寂新', link: 'https://shangjixin.com', target: '_blank' },
+        ]
+      }
       // {text: '主站点', link: 'https://morningmaple.top/'},
     ],
 
