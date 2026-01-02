@@ -585,12 +585,16 @@ mysql -uroot -p
 ```SQL
 # 这里我们先记忆一个配置格式，允许的IP段可以赋值 % ，表示所有IP都能访问：
 # CREATE USER '用户名'@'允许的IP段' IDENTIFIED BY '密码';
+# 这里是放行权限，其中 * 为所有数据库的权限，并且用户名是必须要存在的
+# GRANT ALL PRIVILEGES ON *.* TO '用户名'@'允许的IP段' WITH GRANT OPTION;
 
 # 首先配置Navicat的，登录用户名叫 navicat_user , 开放的端口是本地，完成后按回车即可（我们关掉了外部的，所以这里都写 localhost）：
 CREATE USER 'navicat_user'@'localhost' IDENTIFIED BY '这里是一个强而有力的密码（大写+小写+数字+特殊符号都至少各有一个）';
+GRANT ALL PRIVILEGES ON *.* TO 'navicat_user'@'localhost' WITH GRANT OPTION;
 
 # 同理配置一个 Spring Boot 服务访问的，完成后按回车即可：
 CREATE USER 'spring_boot_user'@'localhost' IDENTIFIED BY '这里是一个强而有力的密码（大写+小写+数字+特殊符号都至少各有一个）';
+GRANT ALL PRIVILEGES ON *.* TO 'spring_boot_user'@'localhost' WITH GRANT OPTION;
 
 # 看到每个配置回车后都输出下面的内容，表示配置成功：
 Query OK, 0 rows affected (0.01 sec)
