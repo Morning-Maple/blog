@@ -256,7 +256,393 @@ rpm -e 查询到的名称 --nodeps
 
 #### 方案一：直接下载
 
-pass（后续补）
+**注意，此方案基于`CentOS Stream 9`进行，不同于本文其他方案所用到的，使用前请留意是否存在版本不兼容的问题~**：
+
+**方案基于AI+个人成功实践可行后编写，数据库操作相关由`Navicat`负责执行，这里不提及：**
+
+1. 下载
+
+首先来安装一下`mysql`，老规矩，依旧是阿里云的服务器，先登录进服务器终端，输入下面的指令安装，其中`mysql80-community-release-el9.rpm`可自行网上找对应仓库的rpm进行替换：
+
+注意，这条指令不是安装指令，是`Mysql8`的官方仓库，里面的版本都是较新的，可以避免版本滞后等问题：
+
+```shell
+dnf install -y https://repo.mysql.com/mysql80-community-release-el9.rpm
+```
+
+如果你想要验证一下，可以使用下面的指令，你会看到控制台输出对应的内容：
+
+```shell
+dnf repolist enabled | grep mysql
+
+>> mysql-connectors-community           MySQL Connectors Community
+>> mysql-tools-community                MySQL Tools Community
+>> mysql80-community                    MySQL 8.0 Community Serve
+```
+
+接着输入下面的指令，进行真正的安装：
+
+```shell
+dnf install -y mysql-community-server
+```
+
+*****
+
+如果你想直接用系统默认仓库，也可以按下面执行:
+```shell
+# 查看系统查看的Mysql版本
+dnf module list mysql
+
+# 启用MySQL 8.0 模块（问我也不知道，没有过多了解为啥要启用，有兴趣可以自行了解一下）
+dnf module enable mysql:8.0
+
+# 安装
+dnf install mysql-server
+```
+
+******
+
+2. 改写配置文件
+
+**注意，如果你有Windows+Liunx混搭用的问题，现在就配置上`lower_case_table_names = 1
+`用于：`表名统一按小写存储 & 查询`，因为Linux对表名大小写敏感，但是Windows不会，防止迁移带出问题，自行决定！**
+
+打开配置文件：
+
+```SHELL
+vim /etc/my.cnf
+```
+
+写入以下内容（`[mysqld]`是原本就有的，在他的下面可能会有有一些内容，不用管，直接在最下面补上下述内容即可，用的是`vim`编辑器，不会用的百度一下.jpg）：
+
+```yaml
+[mysqld]
+# 开放的端口
+port = 3306
+# 允许的访问，这里只允许本机访问，要全开放可以填 0.0.0.0
+bind-address = 127.0.0.1
+
+# 字符集，无需多言
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# 最大同时链接数目
+max_connections = 50
+
+# InnoDB 内存控制（2GB 服务器关键）
+# 最大核心缓冲
+innodb_buffer_pool_size = 256M
+# 最大事务写入缓冲
+innodb_log_buffer_size = 16M
+
+# 绕过 OS Page Cache，直接写磁盘，防止Mysql和Linux双重缓存
+innodb_flush_method = O_DIRECT
+
+# 慢查询记录。这里设置了查询超过 1 秒为慢查询
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 1
+
+# ***Linux 上统一表名为小写存入
+lower_case_table_names = 1
+
+```
+
+**额外情况**
+
+一般来说写入配置后再启动，不会有问题，但是如果你是启动后再写入上述配置，并且设置了`lower_case_table_names = 1`这条规则，且重启报下面的错误：
+
+```SHELL
+>> Job for mysqld.service failed because the control process exited with error code.
+>> See "systemctl status mysqld.service" and "journalctl -xeu mysqld.service" for details.
+```
+
+这是因为`Mysql`初始化后，不支持修改此条策略导致的（本来它对大小写敏感，都已经初始化好了，所有东西都基于这个大小写敏感的规则，这时候你让他不敏感，他就受不了直接报错了）
+
+那你可以按下面方法二选一处理：
+
+* 干掉这条配置
+
+手动移除`lower_case_table_names = 1`这条配置，保存，执行下面的重启就行
+
+```SHELL
+systemctl restart mysqld
+
+systemctl status mysqld
+
+# 下面的输出有 running 就代表数据库运行正常！
+>> ● mysqld.service - MySQL Server
+>>   Loaded: loaded (/**/**/**/**/mysqld.service; enabled; preset: disabled)
+>>   Active: active (running) since ** **-**-** 01:08:40 CST; 13s ago
+>>     Docs: man:mysqld(8)
+>>           http://dev.mysql.com/doc/refman/en/using-systemd.html
+>>  Process: 16754 ExecStartPre=/**/**/mysqld_pre_systemd (code=exited, status=0/SUCCESS)
+>> Main PID: 19990 (mysqld)
+>>   Status: "Server is operational"
+>>    Tasks: 38 (limit: 10645)
+>>   Memory: 451.6M
+>>      CPU: 5.029s
+>>   CGroup: /system.slice/mysqld.service
+>>           └─19990 /**/**/mysqld
+```
+
+* 重新初始化`MySQL`（如果你前面配置了密码啥的，会重置掉，如果你数据库已经有数据，不要这样干！！！）
+
+先停止`MySQL`服务
+```SHELL
+systemctl stop mysqld
+```
+
+干掉对应的`MySQL`文件夹，按上面操作，没有挪位置，就应该是下面这个位置.jpg
+```SHELL
+rm -rf /var/lib/mysql
+```
+
+重新初始化`MysSQL`
+```SHELL
+mysqld --initialize --user=mysql
+```
+
+确认状态，看到有 `running` 就是成功的！
+```SHELL
+systemctl status mysqld
+
+# 下面的输出有 running 就代表数据库运行正常！
+>> ● mysqld.service - MySQL Server
+>>   Loaded: loaded (/**/**/**/**/mysqld.service; enabled; preset: disabled)
+>>   Active: active (running) since ** **-**-** 01:08:40 CST; 13s ago
+>>     Docs: man:mysqld(8)
+>>           http://dev.mysql.com/doc/refman/en/using-systemd.html
+>>  Process: 16754 ExecStartPre=/**/**/mysqld_pre_systemd (code=exited, status=0/SUCCESS)
+>> Main PID: 19990 (mysqld)
+>>   Status: "Server is operational"
+>>    Tasks: 38 (limit: 10645)
+>>   Memory: 451.6M
+>>      CPU: 5.029s
+>>   CGroup: /system.slice/mysqld.service
+>>           └─19990 /**/**/mysqld
+```
+
+3. 设置`MySQL`开机自启动
+
+```SHELL
+systemctl enable --now mysqld
+```
+
+4. root 权限配置
+
+首先先获取临时的权限密码（注意，如果有多条，用最下面，也就是最新的一条【因为之前配置过一次权限，然后重新初始化`MySQL`后再配置权限，所以会有两条】）
+```SHELL
+grep 'temporary password' /var/log/mysqld.log
+
+>> **-01-01T17:08:37.646235Z 6 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: gi****gD
+>> **-01-01T18:17:33.592209Z 6 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: *7r*****G
+```
+
+记住上面最后那一段字符串后，开始执行我们的权限初始化，接着按出现的提示操作就行，有让你输入`Y`或者`N`的环节，多用翻译软件看清楚再执行即可（输入密码环节，密码不会在终端中展示）：
+```SHELL
+mysql_secure_installation
+
+>> Securing the MySQL server deployment.
+>> 
+>> # 登录，输入上面给的临时密码
+>> Enter password for user root: 
+>> 
+>> # 登录成功后，临时密码就会被干掉，下面就需要你重新设置密码（需要大写+小写+数字+特殊符号都至少各有一个）
+>> The existing password for the user account root has expired. Please set a new password.
+>> 
+>> New password: 
+>> 
+>> Re-enter new password: 
+>> # 这里就是提示你的密码不符合当前密码策略规则（大写+小写+数字+特殊符号都至少各有一个）
+>>  ... Failed! Error: Your password does not satisfy the current policy requirements
+>> 
+>> New password: 
+>> 
+>> Re-enter new password: 
+>> The 'validate_password' component is installed on the server.
+>> The subsequent steps will run with the existing configuration
+>> of the component.
+>> Using existing password for root.
+>> 
+>> Estimated strength of the password: 100 
+>> # 这里问你要不要再改一次 root 的密码，我们上面设置了，这里就不改了（例子是我脑抽又改了一次...）
+>> Change the password for root ? ((Press y|Y for Yes, any other key for No) : y
+>> 
+>> New password: 
+>> 
+>> Re-enter new password: 
+>> Sorry, passwords do not match.
+>> 
+>> New password: 
+>> 
+>> Re-enter new password: 
+>> 
+>> Estimated strength of the password: 100 
+>> # 链接要求密码，Y
+>> Do you wish to continue with the password provided?(Press y|Y for Yes, any other key for No) : y
+>> By default, a MySQL installation has an anonymous user,
+>> allowing anyone to log into MySQL without having to have
+>> a user account created for them. This is intended only for
+>> testing, and to make the installation go a bit smoother.
+>> You should remove them before moving into a production
+>> environment.
+>> 
+>> # 移除 root 外所有用户？（自行选择，不过新库无所谓吧，最好就清一下）
+>> Remove anonymous users? (Press y|Y for Yes, any other key for No) : y
+>> Success.
+>> 
+>> 
+>> Normally, root should only be allowed to connect from
+>> 'localhost'. This ensures that someone cannot guess at
+>> the root password from the network.
+>> 
+>> # 禁止远程以 root 登录，这是root的策略，不影响其他创建的用户
+>> # （这个问你要不要支持远程服务器用 root 用户，通过默认的数据库开放端口【3306】来访问数据库，一般我们用SSH后，再来访问数据库；
+>> # 这种对外暴露的除非你的服务器就是纯放数据库，否则最好不要开，我们数据库和后端在一台机器上，所以这里设Y）
+>> # 如果后续有需要，设置用户的时候host填 % ，并且去配置文件中，把 bind-address = 127.0.0.1 改为 0.0.0.0 即可，记得防火墙开放相关端口
+>> Disallow root login remotely? (Press y|Y for Yes, any other key for No) : y
+>> Success.
+>> 
+>> By default, MySQL comes with a database named 'test' that
+>> anyone can access. This is also intended only for testing,
+>> and should be removed before moving into a production
+>> environment.
+>> 
+>> # 问你要不要干掉测试数据库和相关的访问权限，这里自己来，用例设了Y，直接上生产说是awa
+>> Remove test database and access to it? (Press y|Y for Yes, any other key for No) : y
+>>  - Dropping test database...
+>> Success.
+>> 
+>>  - Removing privileges on test database...
+>> Success.
+>> 
+>> Reloading the privilege tables will ensure that all changes
+>> made so far will take effect immediately.
+>> 
+>> # 重新加载权限表，Y
+>> Reload privilege tables now? (Press y|Y for Yes, any other key for No) : y
+>> Success.
+>> 
+>> All done! 
+```
+
+验证登录：
+```SHELL
+mysql -uroot -p
+
+>> Enter password: 
+>> # 上面敲了 root 的密码后，正常就显示下面的东东了
+>> Welcome to the MySQL monitor.  Commands end with ; or \g.
+>> Your MySQL connection id is 8
+>> Server version: 8.0.44 MySQL Community Server - GPL
+>> 
+>> Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+>> 
+>> Oracle is a registered trademark of Oracle Corporation and/or its
+>> affiliates. Other names may be trademarks of their respective
+>> owners.
+>> 
+>> Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+>> 
+>> # 这里我们快速验证一下
+>> mysql>SELECT VERSION();
+>> +-----------+
+>> | VERSION() |
+>> +-----------+
+>> | 8.0.44    |
+>> +-----------+
+>> 1 row in set (0.00 sec)
+>>
+>> # 有上述内容，OK，退出链接即可
+>> mysql> exit;
+>> Bye
+```
+
+5. 用户权限配置
+
+这里我们快速设置两个用户，一个给`navicat`链接，一个给本地的`spring boot`进行链接，老规矩，先登录`mysql`，敲密码：
+```SHELL
+mysql -uroot -p
+
+>> Enter password: 
+>> Welcome to the MySQL monitor.  Commands end with ; or \g.
+>> Your MySQL connection id is 8
+>> Server version: 8.0.44 MySQL Community Server - GPL
+>> 
+>> Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+>> 
+>> Oracle is a registered trademark of Oracle Corporation and/or its
+>> affiliates. Other names may be trademarks of their respective
+>> owners.
+>> 
+>> Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+>> 
+>> mysql>
+```
+
+配置用户：
+```SQL
+# 这里我们先记忆一个配置格式，允许的IP段可以赋值 % ，表示所有IP都能访问：
+# CREATE USER '用户名'@'允许的IP段' IDENTIFIED BY '密码';
+
+# 首先配置Navicat的，登录用户名叫 navicat_user , 开放的端口是本地，完成后按回车即可（我们关掉了外部的，所以这里都写 localhost）：
+CREATE USER 'navicat_user'@'localhost' IDENTIFIED BY '这里是一个强而有力的密码（大写+小写+数字+特殊符号都至少各有一个）';
+
+# 同理配置一个 Spring Boot 服务访问的，完成后按回车即可：
+CREATE USER 'spring_boot_user'@'localhost' IDENTIFIED BY '这里是一个强而有力的密码（大写+小写+数字+特殊符号都至少各有一个）';
+
+# 看到每个配置回车后都输出下面的内容，表示配置成功：
+Query OK, 0 rows affected (0.01 sec)
+
+# 接着我们立即刷新一下权限表：
+FLUSH PRIVILEGES;
+```
+
+然后我们快速查看一下配置：
+```SQL
+SELECT user, host FROM mysql.user;
+
+# 你会看到：
+>> >> +------------------+-----------+
+>> | user             | host      |
+>> +------------------+-----------+
+>> | mysql.infoschema | localhost |
+>> | mysql.session    | localhost |
+>> | mysql.sys        | localhost |
+>> | navicat_user     | localhost |
+>> | root             | localhost |
+>> | spring_boot_user | localhost |
+>> +------------------+-----------+
+>> 6 rows in set (0.00 sec)
+
+# 可以搭配下述指令来看每个用户拥有的权限，这里不多说：
+SHOW GRANTS FOR '用户名'@'host地址';
+```
+
+如果你要更改`用户名`和`host`，可以参考下面，下面IP段赋值了`%`，表示允许所有IP访问：
+```SQL
+UPDATE mysql.user SET host = '%' WHERE user = '目标用户名';
+
+FLUSH PRIVILEGES;
+```
+
+4. Navicat 远程链接
+
+这里不展开多讲，由于我们没开放直接访问端口，所以我们要通过 SSH 来进行！
+
+这里我们先选 SSH 填你远端服务器的主键，端口默认 22，用户名一般是 root，密码是访问服务器的密码，填上就行
+
+![Snipaste_2026-01-02_16-48-43.png](https://cdn.jsdmirror.com/gh/Morning-Maple/blog_img/all/Snipaste_2026-01-02_16-48-43.png)
+
+然后点击常规，配置数据库访问（注意，连上 SSH 后，是以本地数据库的视角进行的，也就是主机我们填`localhost`即可）
+
+![Snipaste_2026-01-02_16-52-12.png](https://cdn.jsdmirror.com/gh/Morning-Maple/blog_img/all/Snipaste_2026-01-02_16-52-12.png)
+
+测试链接，成功！
+
+![Snipaste_2026-01-02_16-52-36.png](https://cdn.jsdmirror.com/gh/Morning-Maple/blog_img/all/Snipaste_2026-01-02_16-52-36.png)
+
 
 #### 方案二：本地上传后安装
 
