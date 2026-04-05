@@ -166,6 +166,19 @@ mcdreforged init
    	password: # 前面配置MC服务器设置的密码
    ```
 
+5. start_command，服务器启动路径配置：
+
+   ```yaml
+   # 如果是核心直接开服，就这样
+   java -jar server.jar nogui
+   # 如果是整合包，就找找服务器目录下面有没有run.bat或者start.bat，哪个能启动服务器，就填哪个
+   run.bat nogui
+   # 或者
+   start.bat nogui
+   # 加点参数，这里表示，最小使用1G内存，最大使用2G内存，nogui表示不要MC自己的服务端启动UI
+   java -Xms1G -Xmx2G -jar minecraft_server.jar nogui
+   ```
+
 接着把之前运行服务端核心生成的全部文件，拖入到这里的server文件夹（MCDR是我们刚刚创建的文件夹）
 
 ![image-20231103182131810](https://cdn.jsdmirror.com/gh/Morning-Maple/blog_img/2025_01/image-20231103182131810.png)
