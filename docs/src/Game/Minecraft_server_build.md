@@ -166,7 +166,9 @@ mcdreforged init
    	password: # 前面配置MC服务器设置的密码
    ```
 
-5. start_command，服务器启动路径配置：
+5. start_command，服务器启动路径配置，如果你用的不是原版核心，请把`minecraft_server.jar`改为你的核心名字：
+
+   * 提醒，指向核心并且用MCDR启动后，下载核心所需的文件可能会比较久，耐心等待（中途可能会刷红色的ERROR，但是不必担心，等会就好！）~
 
    ```yaml
    # 如果是核心直接开服，就这样
@@ -177,6 +179,8 @@ mcdreforged init
    start.bat nogui
    # 加点参数，这里表示，最小使用1G内存，最大使用2G内存，nogui表示不要MC自己的服务端启动UI
    java -Xms1G -Xmx2G -jar minecraft_server.jar nogui
+   # 指向你的Fabric核心
+   java -Xms1G -Xmx2G -jar fabric_minecraft.jar nogui
    ```
 
 接着把之前运行服务端核心生成的全部文件，拖入到这里的server文件夹（MCDR是我们刚刚创建的文件夹）
@@ -350,7 +354,8 @@ kick-existing-players = false
 #                  description and mod list.
 # - "all":         Uses the backend server's response as the proxy response. The Velocity
 #                  configuration is used if no servers could be contacted.
-# 不用管，问你传不传ping请求而已，你可以默认，也可以"all"，不记得我有没有改过了
+# 不用管，问你传不传ping请求而已，你可以默认“disabled”
+# 这里必须说明一下，如果你要用自己服务器的信息而不是Velocity的，你这里要选“all”，否则读取不到你的服务器信息和icon，具体看下面的疑难解答！
 ping-passthrough = "all"
 
 # If not enabled (default is true) player IP addresses will be replaced by <ip address withheld> in logs
@@ -551,3 +556,17 @@ pip install package				# 第二行
 同时这里提供一份MCDR文档的说明，自行阅读匹配：
 
 ![image-20231103233721560](https://cdn.jsdmirror.com/gh/Morning-Maple/blog_img/2025_01/image-20231103233721560.png)
+
+## 疑难解答
+Q：用Velocity后，服务器列表显示不出来我的服务器信息和icon？
+
+A：两种方法：
+
+    1. 把ping-passthrough设置为"all"，然后重启Velocity；
+    2. 把ping-passthrough设置为"disabled"，让Velocity代理信息，在配置文件的motd编写你的服务器介绍，把`server-icon.png`放到你的Velocity.jar同级目录下即可；【个人推荐】
+
+    * 注意：在Velocity下输入motd，你需要用以下格式编写minimessage：
+    `motd = "<aqua><bold>==========→</bold></aqua><gold><bold>是 awa 的服务器啾！</bold></gold><aqua><bold>←==========</bold></aqua>\n<yellow><bold>版本：26.1</bold></yellow>"`
+    
+    * 如果你是用服务器文件`server.properties`的信息，那么你就需要用到特殊符号`§`：
+    `motd=§b§l==========→§6§l是 awa 的服务器啾！§b§l←==========\n§e§l版本：26.1`
